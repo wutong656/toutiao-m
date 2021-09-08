@@ -26,3 +26,10 @@ export function frac(data) {
     data
   })
 }
+
+export function selectParams(urls) {
+  return request({
+    url: urls,
+    method: 'GET'
+  })
+}
