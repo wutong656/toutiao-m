@@ -7,14 +7,11 @@
       <div class="content-top">
         <div class="timer">
           <span>推广时间：</span>
-          <el-button-group>
-            <el-button style="border: 1px solid #1890ff" @click="toDay">今日</el-button>
-            <el-button @click="weekDay">本周</el-button>
-            <el-button @click="monTh">本月</el-button>
-            <el-button @click="cusTom">自定义</el-button>
-          </el-button-group>
+          <ul>
+            <li v-for="(item, index) in navList" :key="index" :class="{ active:form.dateType == item.id }" @click="queryGet(item.id)">{{ item.name }}</li>
+          </ul>
           <el-date-picker
-            v-model="form.time"
+            v-model="time"
             type="daterange"
             value-format="yyyy-MM-dd"
             range-separator="至"
@@ -24,16 +21,16 @@
         </div>
         <div class="channel">
           <span>渠道：</span>
-          <el-select v-model="form.channelId" size="middle" placeholder="请选择推广渠道" @change="change1">
+          <el-select v-model="form.channelId" size="middle" placeholder="请选择推广渠道">
             <el-option
               v-for="item in options1"
-              :key="item.code"
+              :key="item.id"
               :label="item.name"
-              :value="item.code"
+              :value="item.id"
             />
           </el-select>
           <span>任务：</span>
-          <el-select v-model="form.code" size="middlel" placeholder="请选择任务" @change="change2">
+          <el-select v-model="form.promotionId" size="middlel" placeholder="请选择任务">
             <el-option
               v-for="item in options2"
               :key="item.code"
@@ -42,11 +39,12 @@
             />
           </el-select>
           <span>素材：</span>
-          <el-select v-model="form.id" size="middle" placeholder="请选择素材" @change="change3">
+          <el-select v-model="form.materialId" size="middle" placeholder="请选择素材">
             <el-option
               v-for="item in options3"
               :key="item.id"
-              :value="item.name"
+              :label="item.name"
+              :value="item.id"
             />
           </el-select>
         </div>
@@ -77,7 +75,7 @@
         <div class="echarts">
           <div class="fa">
             <el-select v-model="value1" size="middle" placeholder="指标：浏览量（PV）">
-              <el-option 
+              <el-option
                 v-for="item in options4"
                 :key="item.id"
                 :value="item.name"
@@ -113,8 +111,7 @@
 <script>
 import * as echarts from 'echarts'
 import Header from '@/components/Headers'
-import { channelList, taskList, materialList } from '@/api/task'
-import { huan, norm, inline, chartQuery } from '@/api/flow'
+import { huan, norm, inline, chartQuery, listQuery } from '@/api/flow'
 export default {
   components: {
     Header
@@ -123,12 +120,27 @@ export default {
     return {
       value: '',
       value1: '',
+      navList: [{
+        name: '今日',
+        id: 0
+      }, {
+        name: '本周',
+        id: 1
+      }, {
+        name: '本月',
+        id: 2
+      }, {
+        name: '自定义',
+        id: 3
+      }],
       form: {
-        channelId: 3,
-        promotionId: 2,
-        materialId: 2,
-        time: ''
+        dateType: '',
+        channelId: '',
+        promotionId: '',
+        materialId: '',
+        index: ''
       },
+      time: '',
       chart11: [],
       tableData1: [{
         id: 1,
@@ -197,22 +209,57 @@ export default {
     }
   },
   mounted() {
-    this.chart1()
     this.chart2()
-    this.channel()
-    this.task()
-    this.material()
-    this.jin()
+    // this.channel()
+    this.getQuery('api/v1/promotion/query/channel', 'options1')
+    this.getQuery('api/v1/channel/pulldown/task', 'options2')
+    this.getQuery('api/v1/promotion/query/material', 'options3')
+    this.paramsGet()
   },
   methods: {
-    change1() {
-      console.log(this.form.channelId)
+    getQuery(url, list) {
+      listQuery(url).then(res => {
+        this[list] = res.data
+      })
     },
-    change2() {
-      console.log(this.form.code)
+    queryGet(id) {
+      if (id >= 0 && id < 3) {
+        this.form.dateType = id
+        this.paramsGet()
+      } else if (id === 3 && !this.time) {
+        this.$message({
+          message: '请输入开始时间和结束时间',
+          type: 'warning'
+        })
+      } else {
+        this.form.dateType = 3
+        this.form.startDate = this.time[0]
+        this.form.endDate = this.time[1]
+        this.paramsGet()
+      }
     },
-    change3() {
-      console.log(this.form.materialId)
+    paramsGet() {
+      // 环形图
+      huan(this.form).then(res => {
+        res.data.forEach(val => {
+          delete val.percentageNum
+          delete val.percentage
+        })
+        this.chart11 = res.data
+        this.chart1()
+      })
+      // 数据指标
+      // norm(this.form).then(res => {
+      //   // console.log(res.data)
+      // })
+      // 表格
+      // chartQuery(this.form).then(res => {
+      //   // console.log(res.data)
+      // })
+      // 折线图
+      inline(this.form).then(res => {
+        console.log(res.data)
+      })
     },
     cellStyle({ rowIndex }) {
       if (rowIndex === 1 || rowIndex === 2 || rowIndex === 3 || rowIndex === 4) {
@@ -243,20 +290,8 @@ export default {
                 formatter: '{b} : {d}%'
               }
             },
+            color: ['#5DB1FF', '#F2637B', '#3AA1FF', '#36CBCB', '#4ECB73', '#FBD437'],
             data: this.chart11
-            // data: [{
-            //   name: 'Tom',value: 1048
-            // }, {
-            //   value:1048, name: 'Mary'
-            // }, {
-            //   value: 1048, name: 'Jim'
-            // }, {
-            //   value:1048, name: 'Tony'
-            // }, {
-            //   value:1048, name: 'Tony'
-            // }, {
-            //   value: 1048, name: 'May'
-            // }]
           }
         ]
       }
@@ -305,84 +340,6 @@ export default {
         }]
       }
       myChart2.setOption(option2)
-    },
-    // 查询环形图
-    jin() {
-      this.form.index = 0
-      this.form.dateType = '0'
-      delete this.form.time
-      huan(this.form).then(res => {
-        // console.log(res.data)
-        this.chart11 = res.data
-        this.chart11.forEach(val => {
-          delete val.percentageNum
-          delete val.percentage
-        })
-        console.log(this.chart11)
-      })
-    },
-    toDay() {
-      this.form.dateType = '0'
-      delete this.form.time
-      // huan(this.form).then(res => {
-      //   console.log(res.data)
-      // })
-      norm(this.form).then(res => {
-        console.log(res.data)
-      })
-      inline(this.form).then(res => {
-        console.log(res.data)
-      })
-      chartQuery(this.form).then(res => {
-        console.log(res.data)
-      })
-    },
-    weekDay() {
-      this.form.dateType = '1'
-      norm(this.form).then(res => {
-        console.log(res.data)
-      })
-      inline(this.form).then(res => {
-        console.log(res.data)
-      })
-      chartQuery(this.form).then(res => {
-        console.log(res.data)
-      })
-    },
-    monTh() {
-      this.form.dateType = '2'
-      norm(this.form).then(res => {
-        console.log(res)
-      })
-    },
-    cusTom() {
-      if (!this.form.time) {
-        this.$message({
-          message: '请输入开始时间和结束时间',
-          type: 'warning'
-        })
-      }
-    },
-    norms() {
-      norm().then(res => {
-        console.log(res)
-      })
-    },
-    channel() {
-      channelList().then(res => {
-        this.options1 = res.data
-      })
-    },
-    task() {
-      taskList().then(res => {
-        this.options2 = res.data
-        // console.log(this.options2)
-      })
-    },
-    material() {
-      materialList().then(res => {
-        this.options3 = res.data
-      })
     }
   }
 }
@@ -416,28 +373,39 @@ export default {
     overflow: hidden;
     border-bottom: 1px solid #f2f2f2;
     padding-bottom: 30px;
-  }
-  .echarts div {
-    float: left;
+    div {
+      float: left;
+    }
   }
   .tab {
     border-top: 1px solid #f2f2f2;
     margin-top: 20px;
   }
-  .el-button-group>.el-button:not(:last-child) {
-    margin: 0;
+  .timer ul {
+      display: inline-block;
+      padding: 0;
+      margin: 0;
+      vertical-align: middle;
+      list-style: none;
+      overflow: hidden;
+      li {
+        float: left;
+        border: 1px solid #d9d9d9;
+        padding: 10px 15px;
+        cursor: pointer;
+      }
   }
   .el-range-editor.el-input__inner {
     margin-left: 50px;
   }
   .channel {
     margin: 20px 0px;
-  }
-  .channel span {
-    margin-left: 40px;
-  }
-  .channel span:first-child {
-    margin-left: 0;
+    span {
+      margin-left: 40px;
+      &:first-child {
+        margin-left: 0;
+      }
+    }
   }
   .fa {
     position: absolute;
@@ -465,5 +433,9 @@ export default {
          border: none;
       }
     }
+  }
+  .active {
+    border: 1px solid #409EFF !important;
+    color: #409EFF
   }
 </style>
