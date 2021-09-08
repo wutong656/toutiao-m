@@ -1,0 +1,98 @@
+ul{
+  margin: 0px;
+  padding: 0px;
+}
+.app-container{
+  padding:0;
+}
+.source-container{
+  padding:20px;
+  background: #fff;
+  position: relative;
+}
+.source-tabs{
+  background: #fff;
+  position: relative;
+  font-size:22px;
+  padding:10px 20px;
+}
+.source-tabs .iconfont{
+  font-size:20px;
+  cursor: pointer;
+  margin-right: 20px;
+}
+.source-tabs .iconfont span{
+  font-size:14px;
+  vertical-align: top;
+  line-height: 24px;
+}
+.source-add{
+  margin: 20px;
+  padding:40px 20px;
+  background: #fff;
+}
+.source-add .default{
+  width: 100%;
+  border: 1px solid #dfe6ec;
+}
+.source-add .default img{
+  width: 100%;
+}
+.source-add .default .font{
+  min-height: 300px;
+  line-height: 30px;
+  text-align: center;
+  font-size: 20px;
+  color: #999;
+  padding-top:125px;
+  display: block;
+  font-size:18px;
+}
+.source-add .addipt{
+  padding-bottom: 15px;
+  border-bottom: 1px solid #dfe6ec;
+}
+.source-add .tabs{
+  border-bottom: 1px solid #dfe6ec;
+  padding:15px 0;
+  position: relative;
+}
+.source-add .tip{
+  color:#ccc;
+  font-size:14px;
+  margin-top: 5px;
+}
+.source-add .title{
+    font-size: 14px;
+    color: #606266;
+    margin-bottom: 10px;
+}
+.source-success{
+  text-align: center;
+  margin: auto;
+  margin:20px;
+  padding:150px 0;
+}
+.source-success .icon-caozuochenggong{
+  color: #67C23A;
+  font-size: 100px;
+  display: block;
+}
+.source-success .success{
+  font-size:24px;
+  margin-top:40px;
+  margin-bottom: 70px;
+}
+
+
+
+.f-mt25{
+  margin-top: 25px;
+}
+.f-mr15{
+  margin-right: 15px;
+}
+.f-c-1890ff{
+  color:#1890ff;
+  font-size:14px;
+}
